@@ -1,0 +1,156 @@
+version: '2.4'
+services:
+  proxy:
+    container_name: ${PROJECT_NAME}-proxy
+    build: ./servers/proxy
+    environment:
+      - "DOMAIN=${PROJECT_DOMAIN}"
+    volumes:
+      # - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./workspace:/var/www
+      - ./logs/nginx/:/var/log/nginx
+    ports:
+      - "${PROXY_PORT}:80"
+
+  ## MAIL SERVICE
+  mailcatcher:
+    container_name: ${PROJECT_NAME}-mail
+    image: sj26/mailcatcher
+    restart: on-failure:10
+    ports:
+      - "${SMTP_PORT}:1025"
+      - "${SMTP_GUI}:1080"
+
+  ## SERVICES
+  go-api:
+    container_name: ${PROJECT_NAME}-${GO_API_NAME}
+    environment:
+      APP_NAME: ${GO_API_NAME}
+    env_file: ./global.env
+    build:
+      context: ./servers/go-global
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ./workspace/${GO_API_NAME}:/go/src/${GO_API_NAME}
+      - ./servers/go-global/scripts:/scripts
+      - ./global.env:/env_files/global.env
+      - ./.env:/env_files/app.env
+    working_dir: /go/src/${GO_API_NAME}
+    ports:
+      - "${GO_API_PORT}:8080"
+    depends_on:
+      - db-web
+
+  ## REDIS
+  redis:
+    container_name: ${PROJECT_NAME}-${REDIS_APP_NAME}
+    build: ./servers/${REDIS_APP_NAME}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis-data:/redis/data
+
+  ## DATABASE & MIGRATION TOOL
+  db-web:
+    container_name: ${PROJECT_NAME}-db-web
+    image: percona
+    ports:
+      - "${DATABASE_PORT_MYSQL}:3306"
+    environment:
+      - MYSQL_DATABASE=cool_database
+      - MYSQL_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_ROOT_HOST=%
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "20"
+        
+  db-migration:
+    container_name: ${PROJECT_NAME}-migration
+    image: flyway/flyway
+    tty: true
+    # command: -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/${DATABASE_NAME_MYSQL} -user=${USERNAME_DB_MYSQL} -password=${PASSWORD_DB_MYSQL} -connectRetries=10 info
+    command: -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/cool_database -user=root -password=root -connectRetries=10 migrate
+    volumes:
+      - ./workspace/database-migration/mysql:/flyway/sql
+    working_dir: /flyway/sql
+    depends_on:
+      - db-web
+
+  ## ELASTIC & LOG
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
+    container_name: ${PROJECT_NAME}-elasticsearch
+    environment:
+      - node.name=${PROJECT_NAME}-elasticsearch
+      - cluster.initial_master_nodes=${PROJECT_NAME}-elasticsearch
+      - cluster.name=${PROJECT_NAME}-cluster
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: "1000000000"
+    ports:
+      - "${ELASTICSEARCH_API_HTTP_PORT}:9200"
+      - "${ELASTICSEARCH_NODE_PORT}:9300"
+    labels:
+      - "SERVICE_IGNORE=true"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.5.0
+    container_name: ${PROJECT_NAME}-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:${ELASTICSEARCH_API_HTTP_PORT}
+      - xpack.security.enabled=false
+      - xpack.reporting.encryptionKey=HRTXzGsM5hqMk6AHzY6grRNUXpYu8GA4AYkFgVcfehvsyAr5TB
+    labels:
+      - "SERVICE_IGNORE=true"
+    depends_on:
+      - elasticsearch
+    ports:
+      - "${ELASTICSEARCH_KIBANA_PORT}:5601"
+
+  fluentd:
+    container_name: ${PROJECT_NAME}-fluentd
+    build:
+      context: ./servers/fluentd
+    volumes:
+      - ./servers/fluentd/config:/fluentd/etc
+      - ./logs:/logs
+    links:
+      - "elasticsearch"
+    ports:
+      - "${FLUENTD_LOG_PORT}:24224"
+      - "${FLUENTD_LOG_PORT}:24224/udp"
+    expose:
+      - "${FLUENTD_LOG_PORT}"
+    labels:
+      - "SERVICE_IGNORE=true"
+
+  ## RabbitMQ
+  rabbitmq:
+    container_name: ${PROJECT_NAME}-rabbitmq
+    image: rabbitmq:3.6.8-alpine
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+    labels:
+      - "SERVICE_IGNORE=true"
+
+  rabbitmq-management:
+    container_name: ${PROJECT_NAME}-rabbitmq-management
+    image: rabbitmq:3.6.8-management
+    ports:
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    labels:
+      - "SERVICE_IGNORE=true"
+
+volumes:
+  redis-data:
+  mysql-data:

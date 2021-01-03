@@ -1,0 +1,17 @@
+# dotfiles, with exceptions:
+.*
+!.gitignore
+!.gitkeep
+
+# emacs backup files
+*~
+
+# not tracked subdirectories
+/workspace/
+/logs/
+/pkg/
+/bin/
+
+# files
+global.env
+.env
