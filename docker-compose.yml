@@ -151,6 +151,16 @@ services:
     labels:
       - "SERVICE_IGNORE=true"
 
+  sftp:
+    container_name: ${PROJECT_NAME}-sftp
+    image: atmoz/sftp
+    volumes: 
+      - ./servers/ftp/users.conf:/etc/sftp/users.conf:ro
+      - ./storages:/home/ftp
+    ports: 
+      - "${FTP_PORT}:22"
+
+
 volumes:
   redis-data:
   mysql-data:
