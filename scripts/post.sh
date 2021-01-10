@@ -1,18 +1,12 @@
 #!/bin/bash
-source ././config.sh
+source ./scripts/services.sh
 source ./scripts/functions.sh
 
-# NPM
-# for app in $NPM_APPS
-# do 
-#     echo "$app exist"
-#     # cd ../workspace/$app
-#     FILE=package.json
-#     if [ -f "./workspace/$app/$FILE" ]; then
-#         echo "$app : $FILE exist"
-#         cd ./workspace/$app
-#         npm install
-#     fi
-    
-# done
+# check if you want to install dnsmasq
+printf "${GREEN}Do you want to install dnsmasq?${NC} (Y/n)"
+read inputDnsmasq
 
+if [ $inputDnsmasq == "Y" ]; then
+    source ./scripts/dnsmasq/base.sh
+    install_dnsmasq
+fi
