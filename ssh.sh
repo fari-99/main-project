@@ -12,7 +12,7 @@ fi
 # Stop all task if docker daemon is not active
 check_docker_active
 
-CHECK=$(check_container_running "$1")
+CHECK=$(check_container_running "projects-$1")
 
 if [ $? == 1 ]; then
     printf "${GREEN}$1 container is running, connecting to container~~${NC}\n"

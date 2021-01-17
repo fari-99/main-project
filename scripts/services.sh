@@ -1,8 +1,8 @@
 #!/bin/bash
 
 applications=()
-CORE_CONTAINERS='go-api db-web'
-SUPPORT_CONTAINERS='proxy mailcatcher redis elasticsearch kibana fluentd rabbitmq rabbitmq-management sftp'
-#MIGRATION_CONTAINERS='db-migration' # UNCOMMENT THIS FOR FIRST TIME SETUP
+CORE_CONTAINERS='go-api.fadhlan.loc db-web'
+SUPPORT_CONTAINERS='proxy mailcatcher redis redis-management elasticsearch kibana fluentd rabbitmq sftp'
+# MIGRATION_CONTAINERS='db-migration' # UNCOMMENT THIS FOR FIRST TIME SETUP
 DESIGN_CONTAINERS=''
 FAKER_CONTAINERS=''

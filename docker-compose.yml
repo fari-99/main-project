@@ -22,7 +22,7 @@ services:
       - "${SMTP_GUI}:1080"
 
   ## SERVICES
-  go-api:
+  go-api.fadhlan.loc:
     container_name: ${PROJECT_NAME}-${GO_API_NAME}
     environment:
       APP_NAME: ${GO_API_NAME}
@@ -52,6 +52,14 @@ services:
     volumes:
       - redis-data:/redis/data
 
+  redis-management:
+    container_name: ${PROJECT_NAME}-redis-management
+    image: patrikx3/p3x-redis-ui:latest
+    ports:
+        - "${REDIS_MANAGEMENT_PORT}:16379"
+    volumes:
+        - ./servers/redis/settings:/settings
+
   ## DATABASE & MIGRATION TOOL
   db-web:
     container_name: ${PROJECT_NAME}-db-web
@@ -75,14 +83,14 @@ services:
     image: flyway/flyway
     tty: true
     # command: -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/${DATABASE_NAME_MYSQL} -user=${USERNAME_DB_MYSQL} -password=${PASSWORD_DB_MYSQL} -connectRetries=10 info
-    command: -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/cool_database -user=root -password=root -connectRetries=10 migrate
+    command: -baselineOnMigrate="true" -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/cool_database -user=root -password=root -connectRetries=10 migrate
     volumes:
       - ./workspace/database-migration/mysql:/flyway/sql
     working_dir: /flyway/sql
     depends_on:
       - db-web
 
-  ## ELASTIC & LOG
+  ## ELASTIC
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
     container_name: ${PROJECT_NAME}-elasticsearch
@@ -118,6 +126,7 @@ services:
     ports:
       - "${ELASTICSEARCH_KIBANA_PORT}:5601"
 
+  ## LOGS
   fluentd:
     container_name: ${PROJECT_NAME}-fluentd
     build:
@@ -138,20 +147,16 @@ services:
   ## RabbitMQ
   rabbitmq:
     container_name: ${PROJECT_NAME}-rabbitmq
-    image: rabbitmq:3.6.8-alpine
+    build: 
+      context: ./servers/rabbitmq
+      dockerfile: Dockerfile
     ports:
       - "${RABBITMQ_PORT}:5672"
-    labels:
-      - "SERVICE_IGNORE=true"
-
-  rabbitmq-management:
-    container_name: ${PROJECT_NAME}-rabbitmq-management
-    image: rabbitmq:3.6.8-management
-    ports:
       - "${RABBITMQ_MANAGEMENT_PORT}:15672"
     labels:
       - "SERVICE_IGNORE=true"
 
+  ## STORAGES
   sftp:
     container_name: ${PROJECT_NAME}-sftp
     image: atmoz/sftp

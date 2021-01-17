@@ -29,11 +29,8 @@ fi
 #cd $BUILDPATH && go build -o /servicebin
 #echo "[build.sh: launching binary for $APP_NAME]"
 
-# Run compiled service
-go build $GOPATH/src/$APP_NAME/main.go 
-
 # go to workdir
 cd $GOPATH/src/$APP_NAME
 
 # run application
-./main
+go run main.go
