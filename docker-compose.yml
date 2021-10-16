@@ -47,6 +47,7 @@ services:
   redis:
     container_name: ${PROJECT_NAME}-${REDIS_APP_NAME}
     build: ./servers/${REDIS_APP_NAME}
+    command: redis-server --requirepass root
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
@@ -92,57 +93,44 @@ services:
 
   ## ELASTIC
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
     container_name: ${PROJECT_NAME}-elasticsearch
     environment:
-      - node.name=${PROJECT_NAME}-elasticsearch
-      - cluster.initial_master_nodes=${PROJECT_NAME}-elasticsearch
+      - node.name=${PROJECT_NAME}-node1
       - cluster.name=${PROJECT_NAME}-cluster
+      - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    mem_limit: "1000000000"
+    volumes:
+      - ./storages:/usr/share/elasticsearch/data
     ports:
       - "${ELASTICSEARCH_API_HTTP_PORT}:9200"
-      - "${ELASTICSEARCH_NODE_PORT}:9300"
-    labels:
-      - "SERVICE_IGNORE=true"
+    healthcheck:
+      interval: 10s
+      retries: 12
+      test: curl -s http://localhost:${ELASTICSEARCH_API_HTTP_PORT}/_cluster/health | grep -vq '"status":"red"'
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.5.0
     container_name: ${PROJECT_NAME}-kibana
+    image: docker.elastic.co/kibana/kibana:7.10.2
     environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:${ELASTICSEARCH_API_HTTP_PORT}
       - ELASTICSEARCH_HOSTS=http://elasticsearch:${ELASTICSEARCH_API_HTTP_PORT}
       - xpack.security.enabled=false
       - xpack.reporting.encryptionKey=HRTXzGsM5hqMk6AHzY6grRNUXpYu8GA4AYkFgVcfehvsyAr5TB
-    labels:
-      - "SERVICE_IGNORE=true"
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     ports:
       - "${ELASTICSEARCH_KIBANA_PORT}:5601"
-
-  ## LOGS
-  fluentd:
-    container_name: ${PROJECT_NAME}-fluentd
-    build:
-      context: ./servers/fluentd
-    volumes:
-      - ./servers/fluentd/config:/fluentd/etc
-      - ./logs:/logs
-    links:
-      - "elasticsearch"
-    ports:
-      - "${FLUENTD_LOG_PORT}:24224"
-      - "${FLUENTD_LOG_PORT}:24224/udp"
-    expose:
-      - "${FLUENTD_LOG_PORT}"
-    labels:
-      - "SERVICE_IGNORE=true"
+    healthcheck:
+      interval: 10s
+      retries: 20
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:${ELASTICSEARCH_KIBANA_PORT}/api/status
 
   ## RabbitMQ
   rabbitmq:

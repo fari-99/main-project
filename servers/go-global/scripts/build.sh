@@ -21,6 +21,7 @@ fi
 
 if [ -f "/env_files/global.env" ] && [ -f "/env_files/app.env" ]
 then
+	echo "[EXPORT ENV GLOBAL TO CONTAINER]"
     export $(cat /env_files/global.env | sed 's/#.*//g' | xargs)
 	export $(cat /env_files/app.env | sed 's/#.*//g' | xargs)
 fi
@@ -33,4 +34,4 @@ fi
 cd $GOPATH/src/$APP_NAME
 
 # run application
-go run main.go
+go build cmd/servers/main.go && ./main
