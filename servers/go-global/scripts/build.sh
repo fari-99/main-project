@@ -34,4 +34,4 @@ fi
 cd $GOPATH/src/$APP_NAME
 
 # run application
-go build cmd/servers/main.go && ./main
+go build cmd/servers/main/main.go && ./main
