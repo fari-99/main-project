@@ -90,6 +90,17 @@ services:
     working_dir: /flyway/sql
     depends_on:
       - db-web
+  
+  db-postgres:
+    container_name: ${PROJECT_NAME}-db-postgres
+    image: postgres:12
+    restart: always
+    ports:
+      - "${DATABASE_PORT_POSTGRES}:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   ## ELASTIC
   elasticsearch:
@@ -154,7 +165,31 @@ services:
     ports: 
       - "${FTP_PORT}:22"
 
+  ## GraphQL
+  graphql-engine.fadhlan.loc:
+    container_name: ${PROJECT_NAME}-graphql
+    image: hasura/graphql-engine:v2.5.0-beta.1
+    ports:
+    - "${GRAPHQL_PORT}:8080"
+    depends_on:
+    - "db-postgres"
+    restart: always
+    environment:
+      ## postgres database to store Hasura metadata
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:password@db-postgres:5432/postgres
+      ## this env var can be used to add the above postgres database to Hasura as a data source. this can be removed/updated based on your needs
+      PG_DATABASE_URL: postgres://postgres:password@db-postgres:5432/postgres
+      ## enable the console served by server
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      ## enable debugging mode. It is recommended to disable this in production
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      ## uncomment next line to set an admin secret
+      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+      ## uncomment next line to set jwt authentication
+      HASURA_GRAPHQL_JWT_SECRET: '{"type": "HS256","key": "5Qe3XQhqmjvjCRbBEaDGD5D8fN3uCDXk","claims_namespace_path":"$$.hasura_claim","claims_format": "json","issuer": "go-api"}'
 
 volumes:
   redis-data:
   mysql-data:
+  postgres_data:
