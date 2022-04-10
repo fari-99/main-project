@@ -7,6 +7,8 @@ function get_etc_host() {
     CONTAINER_LISTS+="$SUPPORT_CONTAINERS "
     CONTAINER_LISTS+="$DESIGN_CONTAINERS "
     CONTAINER_LISTS+="$FAKER_CONTAINERS "
+    CONTAINER_LISTS+="$TEST_CONTAINERS "
+    CONTAINER_LISTS+="$WEB_CONTAINERS "
 
     printf "${RED}"
     echo "-------------------------------------"
