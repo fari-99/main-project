@@ -188,8 +188,49 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
       ## uncomment next line to set jwt authentication
       HASURA_GRAPHQL_JWT_SECRET: '{"type": "HS256","key": "5Qe3XQhqmjvjCRbBEaDGD5D8fN3uCDXk","claims_namespace_path":"$$.hasura_claim","claims_format": "json","issuer": "go-api"}'
+      ## uncomment next line to set if using remote schema
+      HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS: "true"
 
+  # KAFKA
+  kafka-ui:
+    container_name: ${PROJECT_NAME}-kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "${KAFKA_UI_PORT}:8080"
+    depends_on:
+      - zookeeper
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${PROJECT_NAME}-kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: ${PROJECT_NAME}-zookeeper:2181
+      
+  zookeeper:
+    container_name: ${PROJECT_NAME}-zookeper
+    image: docker.io/bitnami/zookeeper:3.8
+    ports:
+      - "${KAFKA_ZOOKEPER_PORT}:2181"
+    volumes:
+      - "zookeeper_data:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    container_name: ${PROJECT_NAME}-kafka
+    image: bitnami/kafka:3.1.0
+    ports:
+      - "${KAFKA_PORT}:9092"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=${PROJECT_NAME}-zookeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
 volumes:
   redis-data:
   mysql-data:
   postgres_data:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
