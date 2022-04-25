@@ -1,6 +1,6 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
-FROM golang:1.15-alpine as base
+FROM golang:1.18-alpine as base
 
 ARG APP_NAME
 ENV APP_NAME=$APP_NAME
@@ -45,6 +45,6 @@ ADD scripts/reflex.conf /go/_tools
 RUN chmod +x /go/_tools/build.sh
 
 # Add file watcher and swagger generator
-RUN go get -u github.com/cespare/reflex
+RUN go install github.com/cespare/reflex@latest
 
 CMD ["reflex","-c","/go/_tools/reflex.conf"]

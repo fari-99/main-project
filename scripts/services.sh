@@ -8,8 +8,8 @@ DESIGN_CONTAINERS=''
 FAKER_CONTAINERS=''
 
 # this containers are project bounds ProjectName_CONTAINERS
-WEB_CONTAINERS='go-api.fadhlan.loc'
+WEB_CONTAINERS='go-api.fadhlan.loc graphql-engine.fadhlan.loc'
 SearchProducts_CONTAINERS=""
 
 # testing container
-TEST_CONTAINERS='graphql-engine.fadhlan.loc'
+TEST_CONTAINERS='zookeeper kafka kafka-ui'
