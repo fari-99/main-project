@@ -11,7 +11,7 @@ Note:
 
 ## How to use (Local GoLand)
 
-### On Main-Project
+### On main-project (this repo)
 
 1. if repo Nusantara branch `debugs` not yet merge to `master`, you can checkout there.
 2. on `docker-compose.yml` pick container you want to debug and set
