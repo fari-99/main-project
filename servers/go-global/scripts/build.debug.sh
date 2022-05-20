@@ -35,6 +35,6 @@ cd $GOPATH/src/$APP_NAME
 
 # Run compiled service
 echo "build project..."
-go build -gcflags="all=-N -l" -o /server $GOPATH/src/$APP_NAME/cmd/mains/main.go
+go build -gcflags="all=-N -l" -o /server $GOPATH/src/$APP_NAME/cmd/servers/main/main.go
 
 dlv --listen=:40000 --headless=true --api-version=2 --accept-multiclient exec /server
