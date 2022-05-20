@@ -6,7 +6,8 @@ services:
     environment:
       - "DOMAIN=${PROJECT_DOMAIN}"
     volumes:
-      # - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./scripts/services.sh:/usr/local/bin/services.sh
       - ./workspace:/var/www
       - ./logs/nginx/:/var/log/nginx
     ports:
