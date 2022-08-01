@@ -6,6 +6,7 @@ SUPPORT_CONTAINERS='proxy mailcatcher redis redis-management elasticsearch kiban
 DATABASE_CONTAINERS='db-web db-postgres'
 DESIGN_CONTAINERS=''
 FAKER_CONTAINERS=''
+API_GATEWAY='kong-database kong-migrate kong konga-prepare konga'
 
 # this containers are project bounds ProjectName_CONTAINERS
 WEB_CONTAINERS='go-api.fadhlan.loc graphql-engine.fadhlan.loc'

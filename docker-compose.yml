@@ -81,7 +81,7 @@ services:
         
   db-migration:
     container_name: ${PROJECT_NAME}-migration
-    image: flyway/flyway
+    image: flyway/flyway:7.15-alpine
     tty: true
     # command: -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/${DATABASE_NAME_MYSQL} -user=${USERNAME_DB_MYSQL} -password=${PASSWORD_DB_MYSQL} -connectRetries=10 info
     command: -baselineOnMigrate="true" -locations="filesystem:/flyway/sql" -url=jdbc:mysql://db-web:3306/cool_database -user=root -password=root -connectRetries=10 migrate
@@ -226,10 +226,89 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper
+
+# API Gateway
+  kong-database:
+    container_name: ${PROJECT_NAME}-kong-database
+    image: postgres:9.6
+    restart: always
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=kong
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=kong_db
+    ports:
+      - "${KONG_DATABASE}:5432"
+  kong-migrate:
+    container_name: ${PROJECT_NAME}-kong-migrate
+    image: kong:2.3.3
+    restart: on-failure
+    command: kong migrations bootstrap
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_DATABASE=kong_db
+      - KONG_PG_USER=kong
+      - KONG_PG_PASSWORD=12345
+    depends_on:
+      - kong-database
+  kong:
+    container_name: ${PROJECT_NAME}-kong
+    image: kong:2.3.3
+    restart: always
+    environment:
+      - KONG_LOG_LEVEL=debug
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_DATABASE=kong_db
+      - KONG_PG_USER=kong
+      - KONG_PG_PASSWORD=12345
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_PROXY_LISTEN=0.0.0.0:8000
+      - KONG_PROXY_LISTEN_SSL=0.0.0.0:8443
+    ports:
+      - "${KONG_PROXY_LISTEN}:8000"
+      - "${KONG_PROXY_LISTEN_SSL}:8443"
+      - "${KONG_ADMIN_LISTEN}:8001"
+      - "${KONG}:8444"
+    depends_on:
+      - kong-migrate
+      - kong-database
+  konga-prepare:
+    container_name: ${PROJECT_NAME}-konga-prepare
+    image: pantsel/konga:0.14.9
+    command: "-c prepare -a postgres -u postgresql://kong:12345@kong-database:5432/konga_db"
+    restart: on-failure
+    links:
+      - kong-database
+    depends_on:
+      - kong-database
+  konga:
+    container_name: ${PROJECT_NAME}-konga
+    image: pantsel/konga:0.14.9
+    restart: on-failure
+    environment:
+      - DB_ADAPTER=postgres
+      - DB_HOST=kong-database
+      - DB_USER=kong
+      - DB_PASSWORD=12345
+      - TOKEN_SECRET=km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb
+      - DB_DATABASE=konga_db
+      - NODE_ENV=production
+    depends_on:
+      - kong-database
+    ports:
+      - "${KONGA}:1337"
 volumes:
   redis-data:
   mysql-data:
   postgres_data:
+  kong_data:
   zookeeper_data:
     driver: local
   kafka_data:

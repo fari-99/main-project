@@ -14,3 +14,5 @@ check_docker_active
 
 printf "${GREEN}Restart container~~${NC}\n"
 docker restart "projects-$1"
+
+./logs.sh "$1"
