@@ -1,0 +1,23 @@
+FROM golang:1.19-alpine as builder
+
+WORKDIR /app
+
+# Copy the plugin code into the container
+COPY . .
+
+RUN apk update && apk upgrade && \
+    apk add gcc libc-dev
+
+# Build the plugin
+RUN go mod vendor
+# RUN go build test_plugin.go
+# RUN go build test_plugin2.go
+RUN go build -buildmode=plugin -o test_plugin.so test_plugin.go
+RUN go build -buildmode=plugin -o test_plugin2.so test_plugin2.go
+
+
+FROM kong:3.2.2
+
+# Copy the compiled plugin into the Kong plugins directory
+COPY --from=builder /app/test_plugin.so /usr/local/share/lua/5.1/kong/plugins/test_plugin.so
+COPY --from=builder /app/test_plugin2.so /usr/local/share/lua/5.1/kong/plugins/test_plugin2.so

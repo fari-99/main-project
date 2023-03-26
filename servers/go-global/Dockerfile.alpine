@@ -1,6 +1,6 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
-FROM golang:1.19-alpine as base
+FROM golang:1.18.9-alpine as base
 
 ARG APP_NAME
 ENV APP_NAME=$APP_NAME

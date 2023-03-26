@@ -11,7 +11,7 @@ else
     printf "${GREEN}Do you want us to install docker for you?${NC} (Y/n)\n"
     read inputDocker
 
-    if [ $inputDocker == "Y" ]; then
+    if [[ $inputDocker == "Y" ]]; then
         source ./scripts/docker/base.sh
         install_docker
         exit

@@ -7,7 +7,7 @@ source ./scripts/dnsmasq/etchost.sh
 printf "${GREEN}Do you want to install dnsmasq?${NC} (Y/n)"
 read inputDnsmasq
 
-if [ $inputDnsmasq == "Y" ]; then
+if [[ $inputDnsmasq == "Y" ]]; then
     source ./scripts/dnsmasq/base.sh
     install_dnsmasq
 fi
