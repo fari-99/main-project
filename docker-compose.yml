@@ -269,7 +269,7 @@ services:
       - "${KONG_ADMIN_LISTEN}:8001"  # access kong admin API using this port
       - "${KONG}:8444" # access kong admin API using this port if ssl enabled
     volumes:
-      - ./servers/kong/kong.yml:/kong.yml
+      - ./servers/kong/kong.yaml:/kong.yaml
       - ./servers/kong/plugins:/plugins
     depends_on:
       - kong-database
@@ -323,10 +323,14 @@ services:
       - kong-database
   deck:
     image: kong/deck:v1.19.1
-    container_name: deck
+    container_name: ${PROJECT_NAME}-deck
+    environment:
+      - DECK_KONG_ADDR=http://kong:8001
+    user: "1000:1000"
     volumes:
-      - ./servers/kong/kong.yml:/kong.yml
-    command: ["decK", "--config", "/kong.yml", "sync"] # change it to dump to export kong configuration
+      - ./servers/kong/kong.yaml:/kong.yaml
+    command: ["--config", "/kong.yaml", "sync"] # export configuration
+    # command: ["--config", "/kong.yaml", "dump", "--yes"] # export configuration
 volumes:
   redis-data:
   mysql-data:
