@@ -257,31 +257,27 @@ services:
     container_name: ${PROJECT_NAME}-kong
     restart: always
     build:
-      context: ./servers/kong/plugins
-      dockerfile: Dockerfile.plugin
-    environment:
-      KONG_PLUGINS: bundled,test_plugin,test_plugin2
+      context: ./servers/kong
+      dockerfile: Dockerfile
     env_file:
       - ./servers/kong/kong.env
       - ./servers/kong/postgres.env
+      - ./servers/kong/plugins/plugins.env
     ports:
-      - "${KONG_PROXY_LISTEN}:8000"
-      - "${KONG_PROXY_LISTEN_SSL}:8443"
-      - "${KONG_ADMIN_LISTEN}:8001"
-      - "${KONG}:8444"
+      - "${KONG_PROXY_LISTEN}:8000" # access your service through kong using this port (ex: http://<kong-host>:8000/your-api)
+      - "${KONG_PROXY_LISTEN_SSL}:8443" # access your service through kong using this port if ssl enabled (ex: https://<kong-host>:8000/your-api)
+      - "${KONG_ADMIN_LISTEN}:8001"  # access kong admin API using this port
+      - "${KONG}:8444" # access kong admin API using this port if ssl enabled
     volumes:
+      - ./servers/kong/kong.yml:/kong.yml
       - ./servers/kong/plugins:/plugins
     depends_on:
       - kong-database
-  konga-prepare:
-    container_name: ${PROJECT_NAME}-konga-prepare
-    image: pantsel/konga:0.14.9
-    command: "-c prepare -a postgres -u postgresql://kong:12345@kong-database:5432/konga_db"
-    restart: on-failure
-    links:
-      - kong-database
-    depends_on:
-      - kong-database
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   konga:
     container_name: ${PROJECT_NAME}-konga
     image: pantsel/konga:0.14.9
@@ -292,7 +288,11 @@ services:
       - kong-database
     ports:
       - "${KONGA}:1337"
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1337/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   # if you first time using kong and need a first time installation migration
   kong-migrate:
     container_name: ${PROJECT_NAME}-kong-migrate
@@ -310,6 +310,15 @@ services:
     command: kong migrations up && kong migrations finish
     env_file:
       - ./servers/kong/postgres.env
+    depends_on:
+      - kong-database
+  konga-prepare:
+    container_name: ${PROJECT_NAME}-konga-prepare
+    image: pantsel/konga:0.14.9
+    command: "-c prepare -a postgres -u postgresql://kong:12345@kong-database:5432/konga_db"
+    restart: on-failure
+    links:
+      - kong-database
     depends_on:
       - kong-database
   deck:

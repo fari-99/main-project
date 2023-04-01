@@ -12,6 +12,7 @@
 /logs/
 /pkg/
 /bin/
+/postgres-data
 
 # files
 global.env

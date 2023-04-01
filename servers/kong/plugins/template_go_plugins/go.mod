@@ -1,6 +1,6 @@
-module plugins
+module template_go_plugins
 
-go 1.18
+go 1.19
 
 require github.com/Kong/go-pdk v0.8.0
 
