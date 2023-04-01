@@ -1,0 +1,35 @@
+_format_version: "3.0"
+consumers:
+- tags:
+  - third-party-access
+  username: apl
+- tags:
+  - third-party-access
+  username: combiphar
+services:
+- connect_timeout: 60000
+  enabled: true
+  host: go-api.fadhlan.loc
+  name: test
+  port: 8081
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    id: 919debb4-b512-4f77-8d2b-6dc9f61eff86
+    methods:
+    - GET
+    - PUT
+    path_handling: v1
+    paths:
+    - /users
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
