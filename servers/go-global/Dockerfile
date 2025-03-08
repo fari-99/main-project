@@ -1,30 +1,32 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
-FROM golang:1.19-alpine as base
+FROM golang:1.23 as base
 
 ARG APP_NAME
 ENV APP_NAME=$APP_NAME
 
 RUN mkdir -p $GOPATH/src/$APP_NAME
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get install -y bash git
+
+RUN apt-get install -y coz-profiler
 
 # this is for install wkhtmltopdf, if you want to test it
 # 1. delete container you want to test (ex : ./delete-container.sh mandala)
 # 2. uncommenct this line (to end of wkhtmltopdf)
 # 3. rebuild your container (ex : ./container-build.sh mandala) and wait until it's done
 # 4. comment again this line (to end of wkhtmltopdf)
-# RUN apk add --no-cache libxrender libxext gcompat su-exec wkhtmltopdf
+RUN apt-get install -y wkhtmltopdf
 # end of wkhtmltopdf
 
 WORKDIR $GOPATH/src/$APP_NAME
 
 # DEV 
 FROM base as dev 
-RUN apk add --no-cache \
+RUN apt-get install -y \
     autoconf automake libtool gettext \
-    gettext-dev make g++ texinfo curl
+    make g++ texinfo curl
 
 # fswatch is not available at alpine packages
 # WORKDIR /root

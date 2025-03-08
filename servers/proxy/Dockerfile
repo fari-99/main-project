@@ -1,8 +1,8 @@
-FROM nginx:1.15
+FROM nginx:1.23.4
 
 # Install Python and Basic Python Tools
 RUN apt-get update \
-    && apt-get install -y python python-dev libyaml-dev python-pip \
+    && apt-get install -y python python-dev libyaml-dev python3-pip \
     && pip install j2cli
 
 ADD ./templates/ /nginx_templates/
