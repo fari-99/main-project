@@ -347,6 +347,7 @@ services:
     command: ["--config", "/kong.yaml", "sync"] # export configuration
     # command: ["--config", "/kong.yaml", "dump", "--yes"] # export configuration
 
+  # ODOO
   odoo:
     container_name: ${PROJECT_NAME}-odoo
     build:
@@ -368,6 +369,19 @@ services:
       - ./workspace/odoo-filestore:/app/my-odoo/filestore
     healthcheck:
       test: curl -fs http://localhost:8069 || exit 1
+
+  # Go2Rtc
+  go2rtc:
+    container_name: ${PROJECT_NAME}-go2rtc
+    image: alexxit/go2rtc:latest
+    restart: unless-stopped
+    volumes:
+      - ./servers/go2rtc/go2rtc.yaml:/config/go2rtc.yaml
+    ports:
+    # When using host mode: ports mapping is ignored (not needed),
+      - "1984:1984"   # go2rtc web UI & API
+      - "8554:8554"   # RTSP re-stream port
+    # network_mode: "host"
 
 volumes:
   redis-data:

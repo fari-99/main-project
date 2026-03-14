@@ -1,0 +1,9 @@
+api:
+  listen: ":1984"
+  base_path: ""
+
+# Streams are registered dynamically via API by the backend
+streams: {}
+
+log:
+  level: info
