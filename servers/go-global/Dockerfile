@@ -1,6 +1,6 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
-FROM golang:1.23 as base
+FROM golang:1.24 as base
 
 ARG APP_NAME
 ENV APP_NAME=$APP_NAME
@@ -10,14 +10,12 @@ RUN mkdir -p $GOPATH/src/$APP_NAME
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -y bash git
 
-RUN apt-get install -y coz-profiler
-
 # this is for install wkhtmltopdf, if you want to test it
 # 1. delete container you want to test (ex : ./delete-container.sh mandala)
 # 2. uncommenct this line (to end of wkhtmltopdf)
 # 3. rebuild your container (ex : ./container-build.sh mandala) and wait until it's done
 # 4. comment again this line (to end of wkhtmltopdf)
-RUN apt-get install -y wkhtmltopdf
+# RUN apt-get install -y wkhtmltopdf
 # end of wkhtmltopdf
 
 WORKDIR $GOPATH/src/$APP_NAME

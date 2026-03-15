@@ -1,7 +1,7 @@
 #!/bin/bash
 
 applications=()
-SUPPORT_CONTAINERS='proxy mailcatcher redis redis-management elasticsearch rabbitmq sftp'
+SUPPORT_CONTAINERS='proxy_manager mailcatcher redis redis-management elasticsearch rabbitmq sftp'
 # MIGRATION_CONTAINERS='db-migration' # UNCOMMENT THIS FOR FIRST TIME SETUP
 DATABASE_CONTAINERS='db-web db-postgres'
 DESIGN_CONTAINERS=''
@@ -10,7 +10,7 @@ API_GATEWAY='kong-database kong konga-prepare konga'
 API_GATEWAT_FIRST_TIME='kong-migrate kong-migrate-up'
 
 # this containers are project bounds ProjectName_CONTAINERS
-WEB_CONTAINERS='go-api.fadhlan.loc graphql-engine.fadhlan.loc'
+WEB_CONTAINERS='go-api graphql-engine'
 SearchProducts_CONTAINERS=""
 
 # testing container

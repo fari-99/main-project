@@ -2,8 +2,9 @@ api:
   listen: ":1984"
   base_path: ""
 
-# Streams are registered dynamically via API by the backend
-streams: {}
+streams: 
+  test:
+    - rtsp://security.camera.1:3CXK5nm4Ex3twj7rgPujUFvth@192.168.0.43:554/stream1
 
 log:
   level: info

@@ -14,7 +14,7 @@ services:
 
   proxy_manager:
     container_name: ${PROJECT_NAME}-proxy-manager
-    image: 'jc21/nginx-proxy-manager:2.10.4'
+    image: 'jc21/nginx-proxy-manager:2.14.0'
     restart: unless-stopped
     ports:
       - '80:80'
@@ -36,17 +36,16 @@ services:
   ## FRONT END
   vue-ui:
     container_name: ${PROJECT_NAME}-vue
+    image: node:20-alpine
     environment:
       APP_NAME: vue-frontend
     env_file: ./global.env
-    build:
-      context: ./workspace/vue-frontend
-      dockerfile: docker/Dockerfile.dev
+    working_dir: /app/vue-frontend
+    command: sh -c "npm install && npm run dev -- --host"
     ports:
       - "${VUE_PORT}:8080"
     volumes:
        - ./workspace/vue-frontend:/app/vue-frontend:cached
-       - /app/vue-frontend/node_modules
 
   ## SERVICES
   go-api:
