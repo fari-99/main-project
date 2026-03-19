@@ -1,7 +1,7 @@
 #!/bin/bash
 
 applications=()
-SUPPORT_CONTAINERS='proxy_manager mailcatcher redis redis-management elasticsearch rabbitmq sftp'
+SUPPORT_CONTAINERS='proxy_manager mailcatcher redis redis-management elasticsearch rabbitmq sftp go2rtc'
 # MIGRATION_CONTAINERS='db-migration' # UNCOMMENT THIS FOR FIRST TIME SETUP
 DATABASE_CONTAINERS='db-web db-postgres'
 DESIGN_CONTAINERS=''
