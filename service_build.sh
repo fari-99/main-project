@@ -12,5 +12,5 @@ fi
 # Stop all task if docker daemon is not active
 check_docker_active
 
-printf "${GREEN}Rebuild service $1${NC}\n"
+printf "${GREEN}Building service $1${NC}\n"
 docker-compose up -d --build $1

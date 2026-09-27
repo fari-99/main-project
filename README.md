@@ -1,6 +1,37 @@
 # main-project
 This project is the main of the project, has docker compose, setup env, global env, etc.
 
+# Nginx Proxy Manager
+
+Admin UI: `http://localhost:81`
+
+- Email: `admin@test.com`
+- Password: `password`
+
+**Security note:** the password above is a weak placeholder. Change it to something stronger via the Admin UI (`Users` > edit user > `Change Password`) before relying on this for anything beyond local dev, and avoid committing real/production credentials to this file.
+
+## Resetting the admin password
+
+If you get locked out, reset the password directly in the container's sqlite database (there's no built-in CLI reset command):
+
+1. Find the running container name: `docker ps --filter name=proxy-manager`
+2. Exec into it and use its bundled `bcrypt` + `knex` to update the `auth` table:
+    ```sh
+    docker exec <container_name> sh -c "cd /app && node -e \"
+    const bcrypt = require('bcrypt');
+    const knex = require('knex')({client:'sqlite3', useNullAsDefault:true, connection:{filename:'/data/database.sqlite'}});
+    (async () => {
+      const hash = await bcrypt.hash('<new_password>', 13);
+      await knex('user').where({id:1}).update({email:'<new_email>'});
+      await knex('auth').where({user_id:1, type:'password'}).update({secret: hash, modified_on: knex.fn.now()});
+      console.log('updated');
+      process.exit(0);
+    })().catch(e => { console.error(e); process.exit(1); });
+    \""
+    ```
+3. Adjust `id:1` if resetting a different user (check with `knex('user').select('id','email')` first).
+4. Verify by logging in, or via the API: `curl -X POST http://localhost:81/api/tokens -H "Content-Type: application/json" -d '{"identity":"<new_email>","secret":"<new_password>"}'`
+
 # Debugging Golang Service
 
 Debugging golang is important, because we have many services using golang right now, so we need a fast way to debug it.
