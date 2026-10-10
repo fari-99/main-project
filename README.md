@@ -32,6 +32,18 @@ If you get locked out, reset the password directly in the container's sqlite dat
 3. Adjust `id:1` if resetting a different user (check with `knex('user').select('id','email')` first).
 4. Verify by logging in, or via the API: `curl -X POST http://localhost:81/api/tokens -H "Content-Type: application/json" -d '{"identity":"<new_email>","secret":"<new_password>"}'`
 
+# go-api RBAC (first-time setup)
+
+go-api enforces permissions with Casbin on most modules. On a fresh install there are no users, roles or policies, so every gated route returns `403` until you seed them.
+
+1. **Bootstrap**: either run the `rbac-seed` command (creates the `admin` role, an allow-all policy and a first admin user), or start the API with `RBAC_ENABLED=false` in `workspace/go-api/.env` to skip permission checks while you set things up through the API. Login is still required, and the app logs a warning at boot.
+2. **Restart the API** after seeding. Policies are cached in memory, so changes made outside the API (the seed command, direct SQL) are not picked up until restart.
+3. **Re-enable RBAC**: set `RBAC_ENABLED=true` (or remove it) and restart. Never leave it `false` in a shared or production environment.
+
+Other things to know: a user's roles are fixed at login (re-login after changing roles), users with no roles are always denied, and the policy subject format is `{RoleName}-{UserType}` such as `admin-Customer`.
+
+The seed command, the full list of gated and ungated routes and the known issues are documented in [workspace/go-api/README.md](workspace/go-api/README.md#️-rbac--permissions).
+
 # Debugging Golang Service
 
 Debugging golang is important, because we have many services using golang right now, so we need a fast way to debug it.
